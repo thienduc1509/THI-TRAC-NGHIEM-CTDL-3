@@ -16,6 +16,10 @@ ClassList listClasses;
 // SYSTEM BOOT & SHUTDOWN
 // ==========================================
 void BootSystem() {
+    // 0. Enable UTF-8 encoding for Windows Console output
+    SetConsoleOutputCP(65001);
+    SetConsoleCP(65001);
+    
     // 1. Initialize empty pointers
     InitClassList(listClasses);
     
