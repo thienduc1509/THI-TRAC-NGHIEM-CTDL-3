@@ -5,6 +5,9 @@
 *.dll
 *.so
 
+# Temporary Office / Lock files
+~$*
+
 # Session exports and temporary/log files
 session-export-*
 .system_generated/
