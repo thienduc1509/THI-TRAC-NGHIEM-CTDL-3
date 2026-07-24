@@ -1,0 +1,27 @@
+# Executables & Compiled Binaries
+*.exe
+*.o
+*.obj
+*.dll
+*.so
+
+# Session exports and temporary/log files
+session-export-*
+.system_generated/
+scratch/
+*.log
+*.tmp
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.layout
+*.dev
+
+# Deprecated duplicate code files
+CoreManager.cpp
+CoreManager.h
+UIManager.cpp
+UIManager.h
+Structs.h
+implementation_plan.md

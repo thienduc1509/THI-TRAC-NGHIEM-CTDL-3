@@ -1,0 +1,61 @@
+BAS1105-7|Giáo dục quốc phòng an ninh
+BAS1106|Giáo dục thế chất 1
+BAS1107|Giáo dục thể chất 2
+BAS1122|Tư tưởng Hồ Chí Minh
+BAS1150|Triết học Mác - Lênin
+BAS1151|Kinh tế chính trị Mác - Lênin
+BAS1152|Chủ nghĩa xã hội khoa học
+BAS1156|Tiếng Anh Bổ Trợ
+BAS1157|Tiếng Anh (Course 1)
+BAS1158|Tiếng Anh (Course 2)
+BAS1159|Tiếng Anh (Course 3)
+BAS1201|Đại số
+BAS1203|Giải tích
+BAS1204|Giải tích 2
+BAS1224|Vật lý 1 và thí nghiệm
+BAS1226|Xác suất thống kê
+BAS1227|Vật lý 3 và thí nghiệm
+ELE1319|Lý thuyết thông tin
+ELE1330|Xử lý tín hiệu số
+ELE1433|Kỹ thuật số
+INT1154|Tin học cơ sở 1
+INT1155|Tin học cơ sở 2
+INT1306|Cấu trúc dữ liệu và giải thuật
+INT13145|Kiến trúc máy tính
+INT1339|Ngôn ngữ lập trình C++
+INT1358|Toán rời rạc 1
+INT1359-3|Toán rời rạc 2
+SKD1101|Kỹ năng thuyết trình
+SKD1102|Kỹ năng làm việc nhóm
+INT2222|Programming with C++
+INT1111|Agorithms And Data Structures
+INT3214|Making game with Unity
+INT7777|Programming with Java
+INT1235|Making game with Unreal Engine 4
+ART1234|Pixel art
+CEC4321|Artificial Intelligence
+CER2341|Deep learning
+INT0987|Visual Studio && Dev C++
+INT0985|Empty Subject
+INT0982|C# and .Net framework
+AOE1234|Programming with Python
+INT8787|Excel and word
+POP3214|The Witcher
+TNT1234|Database
+TNT1231|Database SQL
+TYT4321|Hacking beginner
+TYT4325|Blockchain and Bitcoin
+INT3412|Linux command line basic
+INT3411|Java Web sevices
+BNB1234|Assembly language
+BNB1232|Learn Advanced C++ Programming
+BNB1236|Microsoft Windows Sever
+INI5678|Windows PowerShell
+INI5670|Computer Networks
+INI5672|MultiThreading C++
+INI5674|Machine Learning
+ANT3214|Bug Hunting
+ANT3212|Create 2D RPG game with Unity
+ANT3215|SFML and Open GL
+WWW1234|DESIGN PATTERN
+BAS1105|BAS1105
