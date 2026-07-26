@@ -22,7 +22,7 @@ QuestionNode* FindQuestion(QuestionNode* head, int id) {
 }
 
 void AddQuestion(QuestionNode*& head, Question data) {
-    QuestionNode* newNode = new QuestionNode{data, nullptr};
+    QuestionNode* newNode = new QuestionNode(data, nullptr);
     if (head == nullptr) {
         head = newNode;
         return;

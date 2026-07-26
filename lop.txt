@@ -1,12 +1,11 @@
+D21CQAT01-N|An Toàn Thông Tin
 D21CQCN01-N|Công Nghệ Thông Tin 1
 D21CQCN02-N|Công Nghệ Thông Tin 2
-D21CQVT01-N|Kỹ Thuật Điện Tử Viễn Thông
-D21CQQT01-N|Quản Trị Kinh Doanh
-D21CQAT01-N|An Toàn Thông Tin
+D21CQDT01-N|Công nghệ kỹ thuật điện, điện tử
 D21CQKT01-N|Kế Toán
-D21CQTD01-N|Kỹ Thuật Điều Khiển và tự động hóa
 D21CQMR01-N|Marketing
 D21CQPT01-N|Công nghệ đa phương tiện
-D21CQDT01-N|Công nghệ kỹ thuật điện, điện tử
-D22CQCN02-N|Công Nghệ Thông Tin 2
+D21CQQT01-N|Quản Trị Kinh Doanh
+D21CQTD01-N|Kỹ Thuật Điều Khiển và tự động hóa
+D21CQVT01-N|Kỹ Thuật Điện Tử Viễn Thông
 D22CQCN1-N|Công nghệ thông tin 1

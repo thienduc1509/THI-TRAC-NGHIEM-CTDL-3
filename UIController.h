@@ -1,23 +1,27 @@
 #pragma once
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+#define NOGDI
+#define NOUSER
 #include <iostream>
 #include <string>
 #include <windows.h>
 #include <conio.h>
 
 // ==========================================
-// CONSTANTS: KEY CODES
+// CONSTANTS: CONSOLE KEY CODES
 // ==========================================
-const int KEY_UP = 72;
-const int KEY_DOWN = 80;
-const int KEY_LEFT = 75;
-const int KEY_RIGHT = 77;
-const int KEY_ENTER = 13;
-const int KEY_ESC = 27;
-const int KEY_BACKSPACE = 8;
-const int KEY_SPACE = 32;
-const int KEY_F10 = 68; // 2nd byte of F10 extended key code
+const int CON_KEY_UP = 72;
+const int CON_KEY_DOWN = 80;
+const int CON_KEY_LEFT = 75;
+const int CON_KEY_RIGHT = 77;
+const int CON_KEY_ENTER = 13;
+const int CON_KEY_ESC = 27;
+const int CON_KEY_BACKSPACE = 8;
+const int CON_KEY_SPACE = 32;
+const int CON_KEY_F10 = 68; // 2nd byte of F10 extended key code
 
 // ==========================================
 // CONSOLE UI PRIMITIVES
@@ -43,6 +47,9 @@ void ShowConsoleCursor(bool showFlag);
 // 3. isPassword: E.g., Student passwords should echo '*' instead of real characters.
 // NOTE: If the user just presses ENTER immediately, this returns an empty string "".
 std::string ReadInput(int maxLength, bool allowSpace = true, bool isPassword = false);
+
+// Đọc số nguyên an toàn, chỉ cho phép gõ phím số (0-9), hỗ trợ Backspace và chống sập stoi
+int ReadIntInput(int minVal, int maxVal);
 
 // Removes extra leading/trailing spaces and collapses multiple spaces into a single space
 std::string NormalizeString(const std::string& str);

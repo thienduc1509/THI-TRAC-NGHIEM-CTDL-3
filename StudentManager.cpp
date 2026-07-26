@@ -5,7 +5,7 @@
 // ==========================================
 
 void AddAnswerDetail(AnswerDetailNode*& head, AnswerDetail data) {
-    AnswerDetailNode* newNode = new AnswerDetailNode{data, nullptr};
+    AnswerDetailNode* newNode = new AnswerDetailNode(data, nullptr);
     if (head == nullptr) {
         head = newNode;
         return;
@@ -14,7 +14,6 @@ void AddAnswerDetail(AnswerDetailNode*& head, AnswerDetail data) {
     while (p->next != nullptr) p = p->next;
     p->next = newNode;
 }
-
 void FreeAnswerDetailList(AnswerDetailNode*& head) {
     while (head != nullptr) {
         AnswerDetailNode* temp = head;
@@ -28,7 +27,7 @@ void FreeAnswerDetailList(AnswerDetailNode*& head) {
 // ==========================================
 
 void AddScore(ScoreNode*& head, Score data) {
-    ScoreNode* newNode = new ScoreNode{data, nullptr};
+    ScoreNode* newNode = new ScoreNode(data, nullptr);
     if (head == nullptr) {
         head = newNode;
         return;
@@ -50,8 +49,7 @@ void FreeScoreList(ScoreNode*& head) {
     while (head != nullptr) {
         ScoreNode* temp = head;
         head = head->next;
-        // MUST clear inner list (details) first to prevent memory leak
-        FreeAnswerDetailList(temp->data.details); 
+        FreeAnswerDetailList(temp->data.details);
         delete temp;
     }
 }
@@ -62,7 +60,7 @@ void FreeScoreList(ScoreNode*& head) {
 
 // Sorted Insert for Student Singly Linked List (Ascending by TEN -> HO -> MASV)
 void AddStudent(StudentNode*& head, Student data) {
-    StudentNode* newNode = new StudentNode{data, nullptr};
+    StudentNode* newNode = new StudentNode(data, nullptr);
     string keyNew = data.TEN + " " + data.HO + " " + data.MASV;
     
     if (head == nullptr || (head->data.TEN + " " + head->data.HO + " " + head->data.MASV) >= keyNew) {

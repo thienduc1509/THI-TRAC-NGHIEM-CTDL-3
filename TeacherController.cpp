@@ -582,21 +582,215 @@ void ManageClassesAndStudentsUI(ClassList& listClasses) {
 }
 
 // ==========================================
-// 8. MAIN ENTRY: TEACHER MENU
+// 8. REPORT FUNCTIONS (Requirements h & i)
+// ==========================================
+
+// Requirement h: Print detailed exam questions of a student for 1 subject
+void PrintDetailedExamResults(ClassList& listClasses, SubjectTree rootSubjects) {
+    system("cls");
+    SetColor(11); gotoxy(10, 3); cout << "=== IN CHI TIET BAI THI CUA SINH VIEN ==="; SetColor(15);
+    
+    gotoxy(10, 5); cout << "Nhap Ma Lop: ";
+    string malop = ToUpper(ReadInput(15, false, false));
+    if (malop.empty()) return;
+    Class* c = FindClass(listClasses, malop);
+    if (c == nullptr) {
+        gotoxy(10, 7); SetColor(12); cout << "Loi: Lop khong ton tai!"; SetColor(15);
+        Sleep(1500); return;
+    }
+    
+    gotoxy(10, 7); cout << "Nhap Ma Sinh Vien: ";
+    string masv = ToUpper(ReadInput(15, false, false));
+    if (masv.empty()) return;
+    StudentNode* st = FindStudent(c->students, masv);
+    if (st == nullptr) {
+        gotoxy(10, 9); SetColor(12); cout << "Loi: Sinh vien khong thuoc lop nay!"; SetColor(15);
+        Sleep(1500); return;
+    }
+
+    gotoxy(10, 9); cout << "Nhap Ma Mon Hoc: ";
+    string mamh = ToUpper(ReadInput(15, false, false));
+    if (mamh.empty()) return;
+    SubjectNode* sub = SearchSubject(rootSubjects, mamh);
+    if (sub == nullptr) {
+        gotoxy(10, 11); SetColor(12); cout << "Loi: Mon hoc khong ton tai!"; SetColor(15);
+        Sleep(1500); return;
+    }
+
+    ScoreNode* sc = FindScore(st->data.scores, sub->data.MAMH);
+    if (sc == nullptr) {
+        system("cls");
+        gotoxy(10, 5); SetColor(12);
+        cout << "Sinh vien (" << st->data.MASV << " - " << st->data.HO << " " << st->data.TEN << ") CHUA THI mon (" << sub->data.TENMH << ")!";
+        SetColor(15); Sleep(2000);
+        return;
+    }
+
+    system("cls");
+    SetColor(11);
+    gotoxy(10, 2); cout << "=== CHI TIET BAI THI MON: " << sub->data.TENMH << " ===";
+    SetColor(14);
+    gotoxy(10, 3); cout << "Sinh vien: " << st->data.MASV << " - " << st->data.HO << " " << st->data.TEN;
+    gotoxy(10, 4); cout << "Diem thi: " << sc->data.Diem << " / 10.0";
+    SetColor(15);
+
+    int y = 6;
+    int qIndex = 1;
+    AnswerDetailNode* ad = sc->data.details;
+    while (ad != nullptr) {
+        string qContent = ad->data.content;
+        string qA = ad->data.A;
+        string qB = ad->data.B;
+        string qC = ad->data.C;
+        string qD = ad->data.D;
+        char qAns = ad->data.answer;
+
+        // Tương thích ngược: Nếu snapshot rỗng (dữ liệu cũ), tra cứu lại từ môn học
+        if (qContent.empty()) {
+            QuestionNode* q = FindQuestion(sub->data.questions, ad->data.questionId);
+            if (q != nullptr) {
+                qContent = q->data.content;
+                qA = q->data.A;
+                qB = q->data.B;
+                qC = q->data.C;
+                qD = q->data.D;
+                qAns = q->data.answer;
+            } else {
+                qContent = "(Cau hoi ID " + to_string(ad->data.questionId) + " da bi xoa khoi ngan hang de)";
+                qAns = '?';
+            }
+        }
+
+        gotoxy(5, y); SetColor(14);
+        cout << "Cau " << qIndex++ << ": " << qContent;
+        SetColor(15); y++;
+
+        gotoxy(8, y); cout << "A. " << qA; y++;
+        gotoxy(8, y); cout << "B. " << qB; y++;
+        gotoxy(8, y); cout << "C. " << qC; y++;
+        gotoxy(8, y); cout << "D. " << qD; y++;
+
+        gotoxy(8, y); cout << "SV chon: ";
+        if (ad->data.studentSelection == qAns) {
+            SetColor(10); cout << ad->data.studentSelection << " (DUNG)";
+        } else {
+            SetColor(12); cout << ad->data.studentSelection << " (SAI, Dap an dung: " << qAns << ")";
+        }
+        SetColor(15); y += 2;
+
+        if (y > 18) {
+            gotoxy(5, y + 1); cout << "Nhan phim bat ky de xem tiep...";
+            getch();
+            system("cls");
+            SetColor(11); gotoxy(10, 2); cout << "=== CHI TIET BAI THI MON: " << sub->data.TENMH << " ===";
+            SetColor(14); gotoxy(10, 3); cout << "Sinh vien: " << st->data.MASV << " - " << st->data.HO << " " << st->data.TEN;
+            gotoxy(10, 4); cout << "Diem thi: " << sc->data.Diem << " / 10.0"; SetColor(15);
+            y = 6;
+        }
+        ad = ad->next;
+    }
+
+    gotoxy(5, y + 1); cout << "Nhan phim bat ky de quay lai...";
+    getch();
+}
+
+// Requirement i: Print class exam scores for 1 subject ("Chua thi" if student hasn't taken exam)
+void PrintClassExamScores(ClassList& listClasses, SubjectTree rootSubjects) {
+    system("cls");
+    SetColor(11); gotoxy(10, 3); cout << "=== IN BANG DIEM THI THEO LOP ==="; SetColor(15);
+    
+    gotoxy(10, 5); cout << "Nhap Ma Lop: ";
+    string malop = ToUpper(ReadInput(15, false, false));
+    if (malop.empty()) return;
+    Class* c = FindClass(listClasses, malop);
+    if (c == nullptr) {
+        gotoxy(10, 7); SetColor(12); cout << "Loi: Lop khong ton tai!"; SetColor(15);
+        Sleep(1500); return;
+    }
+
+    gotoxy(10, 7); cout << "Nhap Ma Mon Hoc: ";
+    string mamh = ToUpper(ReadInput(15, false, false));
+    if (mamh.empty()) return;
+    SubjectNode* sub = SearchSubject(rootSubjects, mamh);
+    if (sub == nullptr) {
+        gotoxy(10, 9); SetColor(12); cout << "Loi: Mon hoc khong ton tai!"; SetColor(15);
+        Sleep(1500); return;
+    }
+
+    system("cls");
+    SetColor(11);
+    gotoxy(15, 2); cout << "=== BANG DIEM THI TRAC NGHIEM ===";
+    SetColor(14);
+    gotoxy(15, 3); cout << "LOP: " << c->MALOP << " - " << c->TENLOP;
+    gotoxy(15, 4); cout << "MON HOC: " << sub->data.MAMH << " - " << sub->data.TENMH;
+    SetColor(15);
+
+    gotoxy(5, 6); cout << "STT";
+    gotoxy(12, 6); cout << "MASV";
+    gotoxy(25, 6); cout << "HO";
+    gotoxy(45, 6); cout << "TEN";
+    gotoxy(60, 6); cout << "DIEM THI";
+    gotoxy(5, 7); cout << "-------------------------------------------------------------------------";
+
+    int y = 8;
+    int index = 1;
+    StudentNode* st = c->students;
+    if (st == nullptr) {
+        gotoxy(5, y); cout << "(Lop chua co sinh vien nao)";
+    }
+
+    while (st != nullptr) {
+        gotoxy(5, y); cout << index++;
+        gotoxy(12, y); cout << st->data.MASV;
+        gotoxy(25, y); cout << st->data.HO;
+        gotoxy(45, y); cout << st->data.TEN;
+
+        ScoreNode* sc = FindScore(st->data.scores, sub->data.MAMH);
+        gotoxy(60, y);
+        if (sc != nullptr) {
+            SetColor(10); cout << sc->data.Diem; SetColor(15);
+        } else {
+            SetColor(12); cout << "Chua thi"; SetColor(15);
+        }
+        y++;
+        st = st->next;
+
+        if (y > 22) {
+            gotoxy(5, y + 1); cout << "Nhan phim bat ky de xem tiep...";
+            getch();
+            system("cls");
+            SetColor(11); gotoxy(15, 2); cout << "=== BANG DIEM THI TRAC NGHIEM ===";
+            SetColor(14); gotoxy(15, 3); cout << "LOP: " << c->MALOP << " - " << c->TENLOP;
+            gotoxy(15, 4); cout << "MON HOC: " << sub->data.MAMH << " - " << sub->data.TENMH;
+            SetColor(15);
+            gotoxy(5, 6); cout << "STT"; gotoxy(12, 6); cout << "MASV"; gotoxy(25, 6); cout << "HO"; gotoxy(45, 6); cout << "TEN"; gotoxy(60, 6); cout << "DIEM THI";
+            gotoxy(5, 7); cout << "-------------------------------------------------------------------------";
+            y = 8;
+        }
+    }
+
+    gotoxy(5, y + 2); cout << "Nhan phim bat ky de quay lai...";
+    getch();
+}
+
+// ==========================================
+// 9. MAIN ENTRY: TEACHER MENU
 // ==========================================
 void TeacherMainMenu(SubjectTree& rootSubjects, ClassList& listClasses) {
     bool isRunning = true;
     while (isRunning) {
         system("cls");
         SetColor(11);
-        gotoxy(30, 5); cout << "=== MENU GIAO VIEN ===";
+        gotoxy(30, 4); cout << "=== MENU GIAO VIEN ===";
         
         SetColor(15);
-        gotoxy(35, 8); cout << "1. Quan ly Mon hoc (BST)";
-        gotoxy(35, 10); cout << "2. Quan ly Lop & Sinh Vien";
-        gotoxy(35, 12); cout << "3. Quan ly Cau hoi thi (Linked List)";
-        gotoxy(35, 14); cout << "0. Quay lai Menu Chinh";
-        gotoxy(35, 18); cout << "Chon: ";
+        gotoxy(30, 7); cout << "1. Quan ly Mon hoc (BST)";
+        gotoxy(30, 9); cout << "2. Quan ly Lop & Sinh Vien";
+        gotoxy(30, 11); cout << "3. Quan ly Cau hoi thi (Linked List)";
+        gotoxy(30, 13); cout << "4. In chi tiet cau hoi da thi cua 1 Sinh vien (Muc h)";
+        gotoxy(30, 15); cout << "5. In bang diem thi môn hoc cua 1 Lop (Muc i)";
+        gotoxy(30, 17); cout << "0. Quay lai Menu Chinh";
+        gotoxy(30, 20); cout << "Chon: ";
         
         std::string choice = ReadInput(1, false, false);
         
@@ -608,6 +802,12 @@ void TeacherMainMenu(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
         else if (choice == "3") {
             ManageQuestionsUI(rootSubjects);
+        }
+        else if (choice == "4") {
+            PrintDetailedExamResults(listClasses, rootSubjects);
+        }
+        else if (choice == "5") {
+            PrintClassExamScores(listClasses, rootSubjects);
         }
         else if (choice == "0") {
             isRunning = false;

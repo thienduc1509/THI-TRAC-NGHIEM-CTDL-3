@@ -211,42 +211,70 @@ bool SaveStudents(ClassList dsLop) {
 // ==========================================
 // SCORES & EXAM DETAILS
 // ==========================================
+// ==========================================
+// SCORES & EXAM DETAILS (Snapshot cho mục h)
+// ==========================================
 bool LoadScores(ClassList& dsLop) {
     ifstream file("diem.txt");
     if (!file.is_open()) return false;
     string line;
     string tokens[10];
     string detailTokens[200];
-    string pairTokens[5];
+    string fieldTokens[10];
     
     while (getline(file, line)) {
         if (line.empty()) continue;
         int count = SplitString(line, '|', tokens, 10);
-        // Format: MASV | MAMH | Diem | QId:Ans,QId:Ans...
+        // Format: MASV | MAMH | Diem | Details
         if (count >= 3) {
-            string masv = tokens[0];
-            Score sc;
-            sc.Mamh = tokens[1];
-            sc.Diem = stof(tokens[2]);
-            
-            // Parse comma separated Answer details (if they exist)
-            if (count >= 4 && !tokens[3].empty()) {
-                int dCount = SplitString(tokens[3], ',', detailTokens, 200);
-                for (int i = 0; i < dCount; i++) {
-                    int pCount = SplitString(detailTokens[i], ':', pairTokens, 5);
-                    if (pCount == 2) {
-                        AnswerDetail ad;
-                        ad.questionId = stoi(pairTokens[0]);
-                        ad.studentSelection = pairTokens[1][0]; // e.g. 'A'
-                        AddAnswerDetail(sc.details, ad);
+            try {
+                string masv = tokens[0];
+                Score sc;
+                sc.Mamh = tokens[1];
+                sc.Diem = stof(tokens[2]);
+                
+                if (count >= 4 && !tokens[3].empty()) {
+                    // Thử phân tách các câu chi tiết theo dấu '#'
+                    int dCount = SplitString(tokens[3], '#', detailTokens, 200);
+                    // Nếu không có dấu '#', kiểm tra xem có dấu ',' của định dạng cũ không
+                    if (dCount == 1 && tokens[3].find(',') != string::npos) {
+                        dCount = SplitString(tokens[3], ',', detailTokens, 200);
+                    }
+
+                    for (int i = 0; i < dCount; i++) {
+                        // Định dạng mới snapshot: QId~Content~A~B~C~D~Ans~Sel
+                        int fCount = SplitString(detailTokens[i], '~', fieldTokens, 10);
+                        if (fCount >= 8) {
+                            AnswerDetail ad;
+                            ad.questionId = stoi(fieldTokens[0]);
+                            ad.content = fieldTokens[1];
+                            ad.A = fieldTokens[2];
+                            ad.B = fieldTokens[3];
+                            ad.C = fieldTokens[4];
+                            ad.D = fieldTokens[5];
+                            ad.answer = fieldTokens[6][0];
+                            ad.studentSelection = fieldTokens[7][0];
+                            AddAnswerDetail(sc.details, ad);
+                        } else {
+                            // Tương thích ngược định dạng cũ QId:Sel
+                            int pCount = SplitString(detailTokens[i], ':', fieldTokens, 5);
+                            if (pCount >= 2) {
+                                AnswerDetail ad;
+                                ad.questionId = stoi(fieldTokens[0]);
+                                ad.studentSelection = fieldTokens[1][0];
+                                AddAnswerDetail(sc.details, ad);
+                            }
+                        }
                     }
                 }
-            }
-            
-            Class* belongingClass = nullptr;
-            StudentNode* st = FindStudentGlobal(dsLop, masv, belongingClass);
-            if (st != nullptr) {
-                AddScore(st->data.scores, sc);
+                
+                Class* belongingClass = nullptr;
+                StudentNode* st = FindStudentGlobal(dsLop, masv, belongingClass);
+                if (st != nullptr) {
+                    AddScore(st->data.scores, sc);
+                }
+            } catch (...) {
+                continue; // Skip malformed score entries
             }
         }
     }
@@ -265,13 +293,20 @@ bool SaveScores(ClassList dsLop) {
                 while (sc != nullptr) {
                     file << st->data.MASV << "|" << sc->data.Mamh << "|" << sc->data.Diem;
                     
-                    // Write answer details in format QId:Ans,QId:Ans
                     if (sc->data.details != nullptr) {
                         file << "|";
                         AnswerDetailNode* ad = sc->data.details;
                         while (ad != nullptr) {
-                            file << ad->data.questionId << ":" << ad->data.studentSelection;
-                            if (ad->next != nullptr) file << ",";
+                            // Lưu full snapshot: QId~Content~A~B~C~D~Ans~Sel
+                            file << ad->data.questionId << "~"
+                                 << ad->data.content << "~"
+                                 << ad->data.A << "~"
+                                 << ad->data.B << "~"
+                                 << ad->data.C << "~"
+                                 << ad->data.D << "~"
+                                 << ad->data.answer << "~"
+                                 << ad->data.studentSelection;
+                            if (ad->next != nullptr) file << "#";
                             ad = ad->next;
                         }
                     } else {

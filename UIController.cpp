@@ -46,11 +46,11 @@ string ReadInput(int maxLength, bool allowSpace, bool isPassword) {
         }
         
         // 3. Handle ENTER (Finish typing)
-        if (ch == KEY_ENTER) {
+        if (ch == CON_KEY_ENTER) {
             break; 
         }
         // 4. Handle BACKSPACE (Delete character)
-        else if (ch == KEY_BACKSPACE) {
+        else if (ch == CON_KEY_BACKSPACE) {
             if (input.length() > 0) {
                 input.pop_back(); // Remove from std::string
                 // Visually erase the character on screen by moving back, printing space, moving back
@@ -59,9 +59,9 @@ string ReadInput(int maxLength, bool allowSpace, bool isPassword) {
         }
         // 5. Handle standard typing
         else if (input.length() < maxLength) {
-            // Filter: Allow only printable ASCII characters (32 to 126)
-            if (ch >= 32 && ch <= 126) { 
-                if (ch == KEY_SPACE && !allowSpace) {
+            // Filter: Allow printable ASCII characters (32 to 126), BUT block '|' delimiter to protect text files
+            if (ch >= 32 && ch <= 126 && ch != '|') { 
+                if (ch == CON_KEY_SPACE && !allowSpace) {
                     continue; // Block spaces if strict formatting is required
                 }
                 
@@ -81,6 +81,41 @@ string ReadInput(int maxLength, bool allowSpace, bool isPassword) {
     ShowConsoleCursor(false);
     
     return input;
+}
+
+// Hàm nhập số nguyên an toàn: Chỉ nhận các phím số '0'-'9', cấm gõ chữ
+int ReadIntInput(int minVal, int maxVal) {
+    string input = "";
+    ShowConsoleCursor(true);
+    while (true) {
+        char ch = getch();
+        if (ch == 0 || ch == -32) {
+            getch();
+            continue;
+        }
+        if (ch == CON_KEY_ENTER) {
+            if (input.empty()) continue;
+            try {
+                int val = stoi(input);
+                if (val >= minVal && val <= maxVal) {
+                    ShowConsoleCursor(false);
+                    return val;
+                }
+            } catch (...) {}
+        }
+        else if (ch == CON_KEY_BACKSPACE) {
+            if (input.length() > 0) {
+                input.pop_back();
+                cout << "\b \b";
+            }
+        }
+        else if (ch >= '0' && ch <= '9') {
+            if (input.length() < 9) { // Giới hạn chiều dài để không bị tràn int
+                input += ch;
+                cout << ch;
+            }
+        }
+    }
 }
 
 string NormalizeString(const string& str) {

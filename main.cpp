@@ -3,6 +3,7 @@
 #include "FileManager.h"
 #include "TeacherController.h"
 #include "StudentController.h"
+#include "RaylibApp.h"
 
 using namespace std;
 
@@ -51,46 +52,33 @@ void DrawMainMenu() {
     system("cls"); // Acceptable ONLY during full screen transitions
     
     SetColor(11); // Cyan color
-    gotoxy(30, 5); cout << "=====================================";
-    gotoxy(30, 6); cout << "|      HE THONG THI TRAC NGHIEM     |";
-    gotoxy(30, 7); cout << "=====================================";
+    gotoxy(30, 4); cout << "========================================";
+    gotoxy(30, 5); cout << "|       HE THONG THI TRAC NGHIEM       |";
+    gotoxy(30, 6); cout << "========================================";
     
-    SetColor(15); // White color
-    gotoxy(35, 10); cout << "1. Giao Vien (Teacher Mode)";
-    gotoxy(35, 12); cout << "2. Sinh Vien (Student Mode)";
-    gotoxy(35, 14); cout << "0. Thoat (Exit)";
+    SetColor(14);
+    gotoxy(32, 9);  cout << "1. CHAY GIAO DIEN DO HOA (Raylib GUI)";
+    SetColor(15);
+    gotoxy(32, 11); cout << "2. Giao Vien (Console Mode)";
+    gotoxy(32, 13); cout << "3. Sinh Vien (Console Mode)";
+    gotoxy(32, 15); cout << "0. Thoat";
     
-    gotoxy(35, 18); cout << "Chon chuc nang: ";
+    gotoxy(32, 18); cout << "Chon che do: ";
 }
 
 // ==========================================
 // APPLICATION ENTRY POINT
 // ==========================================
 int main() {
-    // Phase 1 integration: Load Data
+    // 1. Boot data structures from text files
     BootSystem();
     
-    bool isRunning = true;
-    while (isRunning) {
-        DrawMainMenu();
-        
-        // Phase 1 integration: Use safe input reader
-        // Max length 1, no spaces allowed, not a password
-        string choice = ReadInput(1, false, false); 
-        
-        if (choice == "1") {
-            TeacherMainMenu(rootSubjects, listClasses);
-        }
-        else if (choice == "2") {
-            StudentLoginFlow(listClasses, rootSubjects);
-        }
-        else if (choice == "0") {
-            isRunning = false; 
-        }
-    }
+    // 2. Launch 100% Raylib Standalone Graphical Application
+    RunRaylibApp(rootSubjects, listClasses);
     
-    // Phase 1 integration: Save Data & Clean Memory
+    // 3. Save data and clean memory on close
     ShutdownSystem();
     
     return 0;
 }
+

@@ -23,3 +23,7 @@ void DrawClassList(ClassList listClasses);
 
 void ManageStudentsUI(ClassList& listClasses);
 void DrawStudentList(Class* c);
+
+// Reports: Requirements h & i
+void PrintDetailedExamResults(ClassList& listClasses, SubjectTree rootSubjects);
+void PrintClassExamScores(ClassList& listClasses, SubjectTree rootSubjects);

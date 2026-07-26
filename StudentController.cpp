@@ -1,4 +1,5 @@
 #include "StudentController.h"
+#include "FileManager.h"
 #include <ctime>
 
 using namespace std;
@@ -56,7 +57,6 @@ void TakeExamLoop(StudentNode* student, SubjectNode* subject, Question* examQues
     int totalTimeSeconds = durationMinutes * 60;
     int currentQuestionIndex = 0;
     
-    // Raw dynamic array for student answers (No std::vector)
     char* studentAnswers = new char[totalQuestions];
     for (int i = 0; i < totalQuestions; i++) {
         studentAnswers[i] = ' ';
@@ -108,14 +108,14 @@ void TakeExamLoop(StudentNode* student, SubjectNode* subject, Question* examQues
             if (key == 0 || key == -32) {
                 key = getch(); // Read the second byte
                 
-                if (key == KEY_F10) { 
+                if (key == CON_KEY_F10) { 
                     isRunning = false; // Trigger Submission
                 }
-                else if (key == KEY_LEFT) { 
+                else if (key == CON_KEY_LEFT) { 
                     if (currentQuestionIndex > 0) currentQuestionIndex--;
                     system("cls");
                 }
-                else if (key == KEY_RIGHT) { 
+                else if (key == CON_KEY_RIGHT) { 
                     if (currentQuestionIndex < totalQuestions - 1) currentQuestionIndex++;
                     system("cls"); 
                 }
@@ -149,6 +149,12 @@ void TakeExamLoop(StudentNode* student, SubjectNode* subject, Question* examQues
         // Save Answer Detail into Linked List
         AnswerDetail ad;
         ad.questionId = examQuestions[i].id;
+        ad.content = examQuestions[i].content;
+        ad.A = examQuestions[i].A;
+        ad.B = examQuestions[i].B;
+        ad.C = examQuestions[i].C;
+        ad.D = examQuestions[i].D;
+        ad.answer = examQuestions[i].answer;
         ad.studentSelection = studentAnswers[i];
         AddAnswerDetail(sc.details, ad);
     }
@@ -172,7 +178,7 @@ void TakeExamLoop(StudentNode* student, SubjectNode* subject, Question* examQues
 void SetupExamUI(StudentNode* student, SubjectTree rootSubjects) {
     system("cls");
     gotoxy(10, 5); cout << "Nhap Ma Mon Hoc de thi: ";
-    string mamh = ReadInput(15, false, false);
+    string mamh = ToUpper(ReadInput(15, false, false));
     
     SubjectNode* subject = SearchSubject(rootSubjects, mamh);
     if (subject == nullptr) {
@@ -186,27 +192,21 @@ void SetupExamUI(StudentNode* student, SubjectTree rootSubjects) {
         Sleep(1500); return;
     }
     
-    // Ask for parameters
+    // Ask for parameters with SAFE ReadIntInput
     gotoxy(10, 7); cout << "Nhap so cau hoi: ";
-    string sCau = ReadInput(5, false, false);
-    if (sCau.empty()) return;
-    int soCau = stoi(sCau);
+    int soCau = ReadIntInput(1, 500);
     
     int totalAvailable = CountQuestions(subject->data.questions);
-    if (soCau <= 0 || soCau > totalAvailable) {
-        gotoxy(10, 9); SetColor(12); cout << "Loi: So luong cau hoi khong hop le (Toi da " << totalAvailable << ")!"; SetColor(15);
-        Sleep(1500); return;
+    if (soCau > totalAvailable) {
+        int thieu = soCau - totalAvailable;
+        gotoxy(10, 9); SetColor(12); 
+        cout << "Loi: Mon hoc nay chua du cau hoi thi! (Hien co " << totalAvailable << " cau, con thieu " << thieu << " cau)"; 
+        SetColor(15);
+        Sleep(2200); return;
     }
     
     gotoxy(10, 8); cout << "Nhap thoi gian thi (Phut): ";
-    string sPhut = ReadInput(5, false, false);
-    if (sPhut.empty()) return;
-    int phut = stoi(sPhut);
-    
-    if (phut <= 0) {
-        gotoxy(10, 10); SetColor(12); cout << "Loi: Thoi gian khong hop le!"; SetColor(15);
-        Sleep(1500); return;
-    }
+    int phut = ReadIntInput(1, 180);
     
     gotoxy(10, 11); SetColor(14); cout << "Dang chuan bi de thi... Nhan Enter de bat dau!"; SetColor(15);
     getch();
