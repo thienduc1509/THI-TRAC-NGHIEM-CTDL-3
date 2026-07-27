@@ -166,6 +166,19 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             float cardX = (sw - cardW) / 2.0f;
             float cardY = (sh - cardH) / 2.0f;
 
+            // Keyboard Navigation (TAB to switch focus, ENTER to submit)
+            if (IsKeyPressed(KEY_TAB)) {
+                if (userActive) {
+                    userActive = false;
+                    passActive = true;
+                } else {
+                    userActive = true;
+                    passActive = false;
+                }
+            }
+
+            bool pressEnter = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER);
+
             DrawCard(Rectangle{ cardX, cardY, cardW, cardH });
             DrawTextCustom("ĐĂNG NHẬP HỆ THỐNG", cardX + (cardW - MeasureTextCustom("ĐĂNG NHẬP HỆ THỐNG", 32.0f)) / 2.0f, cardY + 35.0f, 32.0f, COLOR_PRIMARY);
             DrawTextCustom("Thi Trắc Nghiệm PTITHCM CTDL", cardX + (cardW - MeasureTextCustom("Thi Trắc Nghiệm PTITHCM CTDL", 20.0f)) / 2.0f, cardY + 78.0f, 20.0f, COLOR_MUTED);
@@ -183,7 +196,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 DrawTextCustom(loginErrorMsg.c_str(), inputX, cardY + 325.0f, 20.0f, COLOR_DANGER);
             }
 
-            if (DrawButton(Rectangle{ inputX, cardY + 375.0f, inputW, 58.0f }, "ĐĂNG NHẬP", COLOR_PRIMARY, COLOR_BG)) {
+            if (DrawButton(Rectangle{ inputX, cardY + 375.0f, inputW, 58.0f }, "ĐĂNG NHẬP", COLOR_PRIMARY, COLOR_BG) || pressEnter) {
                 string userStr = ToUpper(string(usernameBuf));
                 string passStr = string(passwordBuf);
 
