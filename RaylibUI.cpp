@@ -30,6 +30,8 @@ void InitVietnameseFont() {
             gAppFont = LoadFontEx(path, 80, codepoints.data(), (int)codepoints.size());
             if (gAppFont.texture.id > 0) {
                 SetTextureFilter(gAppFont.texture, TEXTURE_FILTER_BILINEAR);
+                GuiSetFont(gAppFont);
+                GuiSetStyle(DEFAULT, TEXT_SIZE, 22);
                 break;
             }
         }

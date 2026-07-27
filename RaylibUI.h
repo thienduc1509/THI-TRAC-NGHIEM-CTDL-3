@@ -14,6 +14,12 @@
 #undef ShowCursor
 #endif
 
+#include <cstdlib>
+#ifndef TextToFloat
+#define TextToFloat atof
+#endif
+
+#include "raygui.h"
 #include "Models.h"
 #include <string>
 
