@@ -1,35 +1,35 @@
-BAS1105-7|Giáo dục quốc phòng an ninh moi
+BAS1105-7|Giao duc quoc phong an ninh moi
 ART1234|Pixel art
 AOE1234|Programming with Python
 ANT3214|Bug Hunting
 ANT3212|Create 2D RPG game with Unity
 ANT3215|SFML and Open GL
 BAS1105|BAS1105
-BAS1106|Giáo dục thế chất 1
-BAS1107|Giáo dục thể chất 2
-BAS1122|Tư tưởng Hồ Chí Minh
-BAS1150|Triết học Mác - LêniN
-BAS1151|Kinh tế chính trị Mác - Lênin
-BAS1152|Chủ nghĩa xã hội khoa học
-BAS1156|Tiếng Anh Bổ Trợ
-BAS1157|Tiếng Anh (Course 1)
-BAS1158|Tiếng Anh (Course 2)
-BAS1159|Tiếng Anh (Course 3)
-BAS1201|Đại số
-BAS1203|Giải tích
-BAS1204|Giải tích 2
-BAS1224|Vật lý 1 và thí nghiệm
-BAS1226|Xác suất thống kê
-BAS1227|Vật lý 3 và thí nghiệm
-ELE1319|Lý thuyết thông tin
+BAS1106|Giao duc the chat 1
+BAS1107|Giao duc the chat 2
+BAS1122|Tu tuong Ho Chi Minh
+BAS1150|Triet hoc Mac - LeniN
+BAS1151|Kinh te chinh tri Mac - Lenin
+BAS1152|Chu nghia xa hoi khoa hoc
+BAS1156|Tieng Anh Bo Tro
+BAS1157|Tieng Anh (Course 1)
+BAS1158|Tieng Anh (Course 2)
+BAS1159|Tieng Anh (Course 3)
+BAS1201|Dai so
+BAS1203|Giai tich
+BAS1204|Giai tich 2
+BAS1224|Vat ly 1 va thi nghiem
+BAS1226|Xac suat thong ke
+BAS1227|Vat ly 3 va thi nghiem
+ELE1319|Ly thuyet thong tin
 CEC4321|Artificial Intelligence
 BNB1234|Assembly language
 BNB1232|Learn Advanced C++ Programming
 BNB1236|Microsoft Windows Sever
 CER2341|Deep learning
-ELE1330|Xử lý tín hiệu số
-ELE1433|Kỹ thuật số
-INT1154|Tin học cơ sở 1
+ELE1330|Xu ly tin hieu so
+ELE1433|Ky thuat so
+INT1154|Tin hoc co so 1
 INT1111|Agorithms And Data Structures
 INT0987|Visual Studio && Dev C++
 INT0985|Empty Subject
@@ -38,14 +38,14 @@ INI5678|Windows PowerShell
 INI5670|Computer Networks
 INI5672|MultiThreading C++
 INI5674|Machine Learning
-INT1155|Tin học cơ sở 2
-INT1306|Cấu trúc dữ liệu và giải thuật
+INT1155|Tin hoc co so 2
+INT1306|Cau truc du lieu va giai thuat
 INT1235|Making game with Unreal Engine 4
-INT13145|Kiến trúc máy tính
-INT1339|Ngôn ngữ lập trình C++
-INT1358|Toán rời rạc 1
-INT1359-3|Toán rời rạc 2
-SKD1101|Kỹ năng thuyết trình
+INT13145|Kien truc may tinh
+INT1339|Ngon ngu lap trinh C++
+INT1358|Toan roi rac 1
+INT1359-3|Toan roi rac 2
+SKD1101|Ky nang thuyet trinh
 INT2222|Programming with C++
 INT3214|Making game with Unity
 INT7777|Programming with Java
@@ -53,7 +53,7 @@ INT3412|Linux command line basic
 INT3411|Java Web sevices
 INT8787|Excel and word
 POP3214|The Witcher
-SKD1102|Kỹ năng làm việc nhóm
+SKD1102|Ky nang lam viec nhom
 TNT1234|Database
 TNT1231|Database SQL
 TYT4321|Hacking beginner
