@@ -1,4 +1,4 @@
-BAS1105-7|Giáo dục quốc phòng an ninh
+BAS1105-7|Giáo dục quốc phòng an ninh moi
 ART1234|Pixel art
 AOE1234|Programming with Python
 ANT3214|Bug Hunting

@@ -25,6 +25,14 @@
 
 using namespace std;
 
+// Real-Time Substring / Prefix Live Match Helper
+static bool MatchesSearch(const string& text, const string& query) {
+    if (query.empty()) return true;
+    string textUpper = ToUpper(text);
+    string queryUpper = ToUpper(query);
+    return (textUpper.find(queryUpper) != string::npos);
+}
+
 // Draw Sidebar Navigation Bar (Teacher Mode) with Extra Large Fonts
 static void DrawSidebar(AppState& currentState, const string& title, float sw, float sh) {
     float sbW = (sw * 0.24f < 260.0f) ? 260.0f : (sw * 0.24f > 300.0f ? 300.0f : sw * 0.24f);
@@ -84,13 +92,15 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
     // Student Logged In Context
     StudentNode* loggedInStudent = nullptr;
 
-    // Subject Form State
+    // Subject Form State & Real-Time Search
     char subMamhBuf[32] = "";
     char subTenmhBuf[64] = "";
     bool subMamhActive = false, subTenmhActive = false;
     SubjectNode* selectedSubject = nullptr;
+    char searchSubjectBuf[64] = "";
+    bool searchSubjectActive = false;
 
-    // Question Form State
+    // Question Form State & Real-Time Search
     char qContentBuf[256] = "";
     char qABuf[128] = "";
     char qBBuf[128] = "";
@@ -98,12 +108,16 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
     char qDBuf[128] = "";
     char qAnsBuf[8] = "A";
     bool qContentActive = false, qAActive = false, qBActive = false, qCActive = false, qDActive = false, qAnsActive = false;
+    char searchQuestionBuf[64] = "";
+    bool searchQuestionActive = false;
 
-    // Class & Student Form State
+    // Class & Student Form State & Real-Time Search
     char classMalopBuf[32] = "";
     char classTenlopBuf[64] = "";
     bool classMalopActive = false, classTenlopActive = false;
     Class* selectedClass = nullptr;
+    char searchClassBuf[64] = "";
+    bool searchClassActive = false;
 
     char stMasvBuf[32] = "";
     char stHoBuf[32] = "";
@@ -112,11 +126,17 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
     char stPassBuf[32] = "";
     bool stMasvActive = false, stHoActive = false, stTenActive = false, stPhaiActive = false, stPassActive = false;
     StudentNode* selectedStudent = nullptr;
+    char searchStudentBuf[64] = "";
+    bool searchStudentActive = false;
 
-    // Report Selection State
+    // Report Selection State & Real-Time Search
     char rptMasvBuf[32] = "";
     char rptMamhBuf[32] = "";
     bool rptMasvActive = false, rptMamhActive = false;
+    char searchReportHBuf[64] = "";
+    bool searchReportHActive = false;
+    char searchReportIBuf[64] = "";
+    bool searchReportIActive = false;
 
     // Exam Setup State
     char examMamhBuf[32] = "";
@@ -221,7 +241,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
 
         // ==========================================
-        // 2. SUBJECT MANAGER SCREEN (BST CRUD)
+        // 2. SUBJECT MANAGER SCREEN (BST CRUD & Live Search)
         // ==========================================
         else if (currentState == APP_SUBJECT_MANAGER) {
             DrawSidebar(currentState, "QUẢN LÝ MÔN HỌC (CÂY NHỊ PHÂN TÌM KIẾM BST)", sw, sh);
@@ -286,26 +306,35 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 }
             }
 
-            // Table Right
+            // Table Right with Live Search Input Bar
             float tX = cX + formW + cW * 0.03f;
             DrawCard(Rectangle{ tX, cY, tableW, cH });
-            DrawTextCustom("DANH SÁCH MÔN HỌC (IN-ORDER BST)", tX + 20.0f, cY + 20.0f, 24.0f, COLOR_PRIMARY);
+            DrawTextCustom("DANH SÁCH MÔN HỌC (BST)", tX + 20.0f, cY + 16.0f, 22.0f, COLOR_PRIMARY);
+
+            // Real-Time Search Bar
+            DrawTextInput(Rectangle{ tX + 20.0f, cY + 52.0f, tableW - 40.0f, 42.0f }, searchSubjectBuf, 64, searchSubjectActive, "🔍 Gõ để lọc theo mã/tên môn học...");
 
             SubjectNode* arr[500];
             int count = 0;
             CollectSubjectsInOrder(rootSubjects, arr, count);
 
-            float y = cY + 70.0f;
-            DrawTextCustom("STT", tX + 20.0f, y, 20.0f, COLOR_MUTED);
-            DrawTextCustom("MÃ MÔN", tX + 90.0f, y, 20.0f, COLOR_MUTED);
-            DrawTextCustom("TÊN MÔN HỌC", tX + 240.0f, y, 20.0f, COLOR_MUTED);
-            DrawTextCustom("CÂU HỎI", tX + tableW - 110.0f, y, 20.0f, COLOR_MUTED);
-            DrawLine((int)(tX + 20.0f), (int)(y + 28.0f), (int)(tX + tableW - 20.0f), (int)(y + 28.0f), COLOR_BORDER);
-            y += 40.0f;
+            float y = cY + 110.0f;
+            DrawTextCustom("STT", tX + 20.0f, y, 19.0f, COLOR_MUTED);
+            DrawTextCustom("MÃ MÔN", tX + 85.0f, y, 19.0f, COLOR_MUTED);
+            DrawTextCustom("TÊN MÔN HỌC", tX + 230.0f, y, 19.0f, COLOR_MUTED);
+            DrawTextCustom("CÂU HỎI", tX + tableW - 100.0f, y, 19.0f, COLOR_MUTED);
+            DrawLine((int)(tX + 20.0f), (int)(y + 26.0f), (int)(tX + tableW - 20.0f), (int)(y + 26.0f), COLOR_BORDER);
+            y += 36.0f;
 
+            string searchKey = string(searchSubjectBuf);
+            int displayIdx = 1;
             for (int i = 0; i < count && y < (cY + cH - 35.0f); i++) {
+                if (!searchKey.empty() && !MatchesSearch(arr[i]->data.MAMH, searchKey) && !MatchesSearch(arr[i]->data.TENMH, searchKey)) {
+                    continue; // Skip items that don't match live search query
+                }
+
                 bool isSel = (arr[i] == selectedSubject);
-                Rectangle rowRec = { tX + 15.0f, y - 4.0f, tableW - 30.0f, 38.0f };
+                Rectangle rowRec = { tX + 15.0f, y - 4.0f, tableW - 30.0f, 36.0f };
                 if (CheckCollisionPointRec(GetMousePosition(), rowRec) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     selectedSubject = arr[i];
                     strncpy(subMamhBuf, arr[i]->data.MAMH.c_str(), sizeof(subMamhBuf));
@@ -314,16 +343,16 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
 
                 if (isSel) DrawRectangleRec(rowRec, COLOR_CARD_HOVER);
 
-                DrawTextCustom(to_string(i + 1).c_str(), tX + 20.0f, y, 20.0f, COLOR_TEXT);
-                DrawTextCustom(arr[i]->data.MAMH.c_str(), tX + 90.0f, y, 20.0f, COLOR_PRIMARY);
-                DrawTextCustom(arr[i]->data.TENMH.c_str(), tX + 240.0f, y, 20.0f, COLOR_TEXT);
-                DrawTextCustom(to_string(CountQuestions(arr[i]->data.questions)).c_str(), tX + tableW - 90.0f, y, 20.0f, COLOR_SUCCESS);
-                y += 40.0f;
+                DrawTextCustom(to_string(displayIdx++).c_str(), tX + 20.0f, y, 19.0f, COLOR_TEXT);
+                DrawTextCustom(arr[i]->data.MAMH.c_str(), tX + 85.0f, y, 19.0f, COLOR_PRIMARY);
+                DrawTextCustom(arr[i]->data.TENMH.c_str(), tX + 230.0f, y, 19.0f, COLOR_TEXT);
+                DrawTextCustom(to_string(CountQuestions(arr[i]->data.questions)).c_str(), tX + tableW - 85.0f, y, 19.0f, COLOR_SUCCESS);
+                y += 36.0f;
             }
         }
 
         // ==========================================
-        // 3. QUESTION MANAGER SCREEN (Singly Linked List)
+        // 3. QUESTION MANAGER SCREEN (Singly Linked List & Live Search)
         // ==========================================
         else if (currentState == APP_QUESTION_MANAGER) {
             DrawSidebar(currentState, "QUẢN LÝ CÂU HỎI THI (DANH SÁCH LIÊN KẾT ĐƠN)", sw, sh);
@@ -391,17 +420,26 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                     }
                 }
 
-                // Question Table Right
+                // Question Table Right with Real-Time Search Bar
                 float tX = cX + formW + cW * 0.03f;
                 DrawCard(Rectangle{ tX, cY, tableW, cH });
-                DrawTextCustom("DANH SÁCH CÂU HỎI CỦA MÔN", tX + 20.0f, cY + 18.0f, 22.0f, COLOR_PRIMARY);
+                DrawTextCustom("DANH SÁCH CÂU HỎI CỦA MÔN", tX + 20.0f, cY + 16.0f, 22.0f, COLOR_PRIMARY);
 
-                float y = cY + 65.0f;
+                DrawTextInput(Rectangle{ tX + 20.0f, cY + 52.0f, tableW - 40.0f, 40.0f }, searchQuestionBuf, 64, searchQuestionActive, "🔍 Gõ để lọc nội dung hoặc ID...");
+
+                float y = cY + 105.0f;
                 QuestionNode* qNode = selectedSubject->data.questions;
                 if (qNode == nullptr) {
                     DrawTextCustom("(Môn học này chưa có câu hỏi nào)", tX + 20.0f, y, 20.0f, COLOR_MUTED);
                 }
+
+                string searchQKey = string(searchQuestionBuf);
                 while (qNode != nullptr && y < (cY + cH - 40.0f)) {
+                    if (!searchQKey.empty() && !MatchesSearch(qNode->data.content, searchQKey) && !MatchesSearch(to_string(qNode->data.id), searchQKey)) {
+                        qNode = qNode->next;
+                        continue; // Skip non-matching questions in real-time
+                    }
+
                     DrawTextCustom(("ID " + to_string(qNode->data.id) + ": " + qNode->data.content).c_str(), tX + 20.0f, y, 19.0f, COLOR_TEXT);
                     DrawTextCustom(("Key: " + string(1, qNode->data.answer)).c_str(), tX + tableW - 120.0f, y, 19.0f, COLOR_SUCCESS);
 
@@ -420,7 +458,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
 
         // ==========================================
-        // 4. CLASS & STUDENT MANAGER SCREEN
+        // 4. CLASS & STUDENT MANAGER SCREEN (Live Search)
         // ==========================================
         else if (currentState == APP_CLASS_MANAGER) {
             DrawSidebar(currentState, "QUẢN LÝ LỚP HỌC & SINH VIÊN", sw, sh);
@@ -434,18 +472,18 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             float leftW = cW * 0.44f;
             float rightW = cW * 0.53f;
 
-            // Left Class Table & Form
+            // Left Class Table & Form with Live Search Bar
             DrawCard(Rectangle{ cX, cY, leftW, cH });
-            DrawTextCustom("DANH SÁCH LỚP HỌC (MẢNG CON TRỎ)", cX + 20.0f, cY + 18.0f, 22.0f, COLOR_PRIMARY);
+            DrawTextCustom("DANH SÁCH LỚP HỌC", cX + 20.0f, cY + 16.0f, 22.0f, COLOR_PRIMARY);
 
             float fW = (leftW - 50.0f) / 2.0f;
-            DrawTextCustom("Mã Lớp:", cX + 20.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, fW, 42.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
+            DrawTextCustom("Mã Lớp:", cX + 20.0f, cY + 52.0f, 17.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 74.0f, fW, 40.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
 
-            DrawTextCustom("Tên Lớp:", cX + 30.0f + fW, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 30.0f + fW, cY + 78.0f, fW, 42.0f }, classTenlopBuf, 30, classTenlopActive, "CNTT 1");
+            DrawTextCustom("Tên Lớp:", cX + 30.0f + fW, cY + 52.0f, 17.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 30.0f + fW, cY + 74.0f, fW, 40.0f }, classTenlopBuf, 30, classTenlopActive, "CNTT 1");
 
-            if (DrawButton(Rectangle{ cX + 20.0f, cY + 132.0f, leftW - 40.0f, 46.0f }, "THÊM LỚP HỌC MỚI", COLOR_SUCCESS, COLOR_BG)) {
+            if (DrawButton(Rectangle{ cX + 20.0f, cY + 125.0f, leftW - 40.0f, 44.0f }, "THÊM LỚP HỌC MỚI", COLOR_SUCCESS, COLOR_BG)) {
                 string malop = ToUpper(string(classMalopBuf));
                 string tenlop = NormalizeString(string(classTenlopBuf));
 
@@ -460,15 +498,24 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 }
             }
 
-            float y = cY + 195.0f;
+            // Real-Time Search Bar for Classes
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 180.0f, leftW - 40.0f, 38.0f }, searchClassBuf, 32, searchClassActive, "🔍 Lọc mã hoặc tên lớp...");
+
+            float y = cY + 230.0f;
             DrawTextCustom("STT", cX + 20.0f, y, 19.0f, COLOR_MUTED);
             DrawTextCustom("MÃ LỚP", cX + 80.0f, y, 19.0f, COLOR_MUTED);
             DrawTextCustom("TÊN LỚP", cX + 230.0f, y, 19.0f, COLOR_MUTED);
-            DrawLine((int)(cX + 20.0f), (int)(y + 26.0f), (int)(cX + leftW - 20.0f), (int)(y + 26.0f), COLOR_BORDER);
-            y += 36.0f;
+            DrawLine((int)(cX + 20.0f), (int)(y + 24.0f), (int)(cX + leftW - 20.0f), (int)(y + 24.0f), COLOR_BORDER);
+            y += 34.0f;
 
+            string qClass = string(searchClassBuf);
+            int classIdx = 1;
             for (int i = 0; i < listClasses.size && y < (cY + cH - 30.0f); i++) {
                 if (listClasses.nodes[i] != nullptr) {
+                    if (!qClass.empty() && !MatchesSearch(listClasses.nodes[i]->MALOP, qClass) && !MatchesSearch(listClasses.nodes[i]->TENLOP, qClass)) {
+                        continue; // Live filter classes
+                    }
+
                     bool isSel = (listClasses.nodes[i] == selectedClass);
                     Rectangle rowRec = { cX + 15.0f, y - 4.0f, leftW - 30.0f, 34.0f };
                     if (CheckCollisionPointRec(GetMousePosition(), rowRec) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -477,38 +524,38 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
 
                     if (isSel) DrawRectangleRec(rowRec, COLOR_CARD_HOVER);
 
-                    DrawTextCustom(to_string(i + 1).c_str(), cX + 20.0f, y, 19.0f, COLOR_TEXT);
+                    DrawTextCustom(to_string(classIdx++).c_str(), cX + 20.0f, y, 19.0f, COLOR_TEXT);
                     DrawTextCustom(listClasses.nodes[i]->MALOP.c_str(), cX + 80.0f, y, 19.0f, COLOR_PRIMARY);
                     DrawTextCustom(listClasses.nodes[i]->TENLOP.c_str(), cX + 230.0f, y, 19.0f, COLOR_TEXT);
-                    y += 36.0f;
+                    y += 34.0f;
                 }
             }
 
-            // Right Student Table & Form
+            // Right Student Table & Form with Live Search Bar
             float rX = cX + leftW + cW * 0.03f;
             DrawCard(Rectangle{ rX, cY, rightW, cH });
             if (selectedClass == nullptr) {
                 DrawTextCustom("Click chọn 1 Lớp bên trái để quản lý Sinh viên!", rX + 30.0f, cY + 50.0f, 22.0f, COLOR_MUTED);
             } else {
-                DrawTextCustom(("SINH VIÊN LỚP: " + selectedClass->MALOP).c_str(), rX + 20.0f, cY + 18.0f, 22.0f, COLOR_PRIMARY);
+                DrawTextCustom(("SINH VIÊN LỚP: " + selectedClass->MALOP).c_str(), rX + 20.0f, cY + 16.0f, 22.0f, COLOR_PRIMARY);
 
                 float sInputW = (rightW - 70.0f) / 4.0f;
-                DrawTextCustom("Mã SV:", rX + 20.0f, cY + 55.0f, 17.0f, COLOR_TEXT);
-                DrawTextInput(Rectangle{ rX + 20.0f, cY + 76.0f, sInputW, 40.0f }, stMasvBuf, 15, stMasvActive, "N18DCCN001");
+                DrawTextCustom("Mã SV:", rX + 20.0f, cY + 48.0f, 16.0f, COLOR_TEXT);
+                DrawTextInput(Rectangle{ rX + 20.0f, cY + 68.0f, sInputW, 38.0f }, stMasvBuf, 15, stMasvActive, "N18DCCN001");
 
-                DrawTextCustom("Họ:", rX + 25.0f + sInputW, cY + 55.0f, 17.0f, COLOR_TEXT);
-                DrawTextInput(Rectangle{ rX + 25.0f + sInputW, cY + 76.0f, sInputW, 40.0f }, stHoBuf, 30, stHoActive, "Nguyễn Văn");
+                DrawTextCustom("Họ:", rX + 25.0f + sInputW, cY + 48.0f, 16.0f, COLOR_TEXT);
+                DrawTextInput(Rectangle{ rX + 25.0f + sInputW, cY + 68.0f, sInputW, 38.0f }, stHoBuf, 30, stHoActive, "Nguyễn Văn");
 
-                DrawTextCustom("Tên:", rX + 30.0f + sInputW * 2.0f, cY + 55.0f, 17.0f, COLOR_TEXT);
-                DrawTextInput(Rectangle{ rX + 30.0f + sInputW * 2.0f, cY + 76.0f, sInputW, 40.0f }, stTenBuf, 15, stTenActive, "An");
+                DrawTextCustom("Tên:", rX + 30.0f + sInputW * 2.0f, cY + 48.0f, 16.0f, COLOR_TEXT);
+                DrawTextInput(Rectangle{ rX + 30.0f + sInputW * 2.0f, cY + 68.0f, sInputW, 38.0f }, stTenBuf, 15, stTenActive, "An");
 
-                DrawTextCustom("Phái:", rX + 35.0f + sInputW * 3.0f, cY + 55.0f, 17.0f, COLOR_TEXT);
-                DrawTextInput(Rectangle{ rX + 35.0f + sInputW * 3.0f, cY + 76.0f, sInputW - 10.0f, 40.0f }, stPhaiBuf, 5, stPhaiActive, "Nam");
+                DrawTextCustom("Phái:", rX + 35.0f + sInputW * 3.0f, cY + 48.0f, 16.0f, COLOR_TEXT);
+                DrawTextInput(Rectangle{ rX + 35.0f + sInputW * 3.0f, cY + 68.0f, sInputW - 10.0f, 38.0f }, stPhaiBuf, 5, stPhaiActive, "Nam");
 
-                DrawTextCustom("Mật khẩu:", rX + 20.0f, cY + 125.0f, 17.0f, COLOR_TEXT);
-                DrawTextInput(Rectangle{ rX + 20.0f, cY + 146.0f, rightW * 0.48f, 40.0f }, stPassBuf, 20, stPassActive, "Mật khẩu", true);
+                DrawTextCustom("Mật khẩu:", rX + 20.0f, cY + 115.0f, 16.0f, COLOR_TEXT);
+                DrawTextInput(Rectangle{ rX + 20.0f, cY + 135.0f, rightW * 0.48f, 38.0f }, stPassBuf, 20, stPassActive, "Mật khẩu", true);
 
-                if (DrawButton(Rectangle{ rX + rightW * 0.52f, cY + 146.0f, rightW * 0.43f, 40.0f }, "THÊM SINH VIÊN", COLOR_SUCCESS, COLOR_BG)) {
+                if (DrawButton(Rectangle{ rX + rightW * 0.52f, cY + 135.0f, rightW * 0.43f, 38.0f }, "THÊM SINH VIÊN", COLOR_SUCCESS, COLOR_BG)) {
                     string masv = ToUpper(string(stMasvBuf));
                     string ho = NormalizeString(string(stHoBuf));
                     string ten = NormalizeString(string(stTenBuf));
@@ -523,26 +570,36 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                     }
                 }
 
-                float sy = cY + 200.0f;
+                // Real-Time Search Bar for Students
+                DrawTextInput(Rectangle{ rX + 20.0f, cY + 185.0f, rightW - 40.0f, 38.0f }, searchStudentBuf, 32, searchStudentActive, "🔍 Lọc mã SV hoặc họ tên sinh viên...");
+
+                float sy = cY + 235.0f;
                 DrawTextCustom("MASV", rX + 20.0f, sy, 18.0f, COLOR_MUTED);
                 DrawTextCustom("HỌ TÊN", rX + 160.0f, sy, 18.0f, COLOR_MUTED);
                 DrawTextCustom("PHÁI", rX + rightW - 80.0f, sy, 18.0f, COLOR_MUTED);
-                DrawLine((int)(rX + 20.0f), (int)(sy + 24.0f), (int)(rX + rightW - 20.0f), (int)(sy + 24.0f), COLOR_BORDER);
-                sy += 34.0f;
+                DrawLine((int)(rX + 20.0f), (int)(sy + 22.0f), (int)(rX + rightW - 20.0f), (int)(sy + 22.0f), COLOR_BORDER);
+                sy += 32.0f;
 
+                string qSt = string(searchStudentBuf);
                 StudentNode* stNode = selectedClass->students;
                 while (stNode != nullptr && sy < (cY + cH - 25.0f)) {
+                    string fullName = stNode->data.HO + " " + stNode->data.TEN;
+                    if (!qSt.empty() && !MatchesSearch(stNode->data.MASV, qSt) && !MatchesSearch(fullName, qSt)) {
+                        stNode = stNode->next; // Filter student list in real-time
+                        continue;
+                    }
+
                     DrawTextCustom(stNode->data.MASV.c_str(), rX + 20.0f, sy, 18.0f, COLOR_PRIMARY);
-                    DrawTextCustom((stNode->data.HO + " " + stNode->data.TEN).c_str(), rX + 160.0f, sy, 18.0f, COLOR_TEXT);
+                    DrawTextCustom(fullName.c_str(), rX + 160.0f, sy, 18.0f, COLOR_TEXT);
                     DrawTextCustom(stNode->data.PHAI.c_str(), rX + rightW - 80.0f, sy, 18.0f, COLOR_MUTED);
-                    sy += 34.0f;
+                    sy += 32.0f;
                     stNode = stNode->next;
                 }
             }
         }
 
         // ==========================================
-        // 5. REPORT DETAIL EXAM SCREEN (Requirement h)
+        // 5. REPORT DETAIL EXAM SCREEN (Requirement h & Live Search)
         // ==========================================
         else if (currentState == APP_REPORT_DETAIL_EXAM) {
             DrawSidebar(currentState, "IN CHI TIẾT CÂU HỎI ĐÃ THI CỦA 1 SINH VIÊN (MỤC H)", sw, sh);
@@ -554,15 +611,15 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             float cH = sh - 120.0f;
 
             DrawCard(Rectangle{ cX, cY, cW, cH });
-            DrawTextCustom("TRA CỨU CHI TIẾT BÀI THI", cX + 20.0f, cY + 20.0f, 24.0f, COLOR_PRIMARY);
+            DrawTextCustom("TRA CỨU CHI TIẾT BÀI THI", cX + 20.0f, cY + 18.0f, 24.0f, COLOR_PRIMARY);
 
-            DrawTextCustom("Nhập Mã SV:", cX + 20.0f, cY + 65.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 90.0f, 240.0f, 44.0f }, rptMasvBuf, 15, rptMasvActive, "N18DCCN001");
+            DrawTextCustom("Nhập Mã SV:", cX + 20.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 240.0f, 44.0f }, rptMasvBuf, 15, rptMasvActive, "N18DCCN001");
 
-            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 65.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 280.0f, cY + 90.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
+            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 280.0f, cY + 78.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
 
-            if (DrawButton(Rectangle{ cX + 540.0f, cY + 90.0f, 200.0f, 44.0f }, "XEM CHI TIẾT", COLOR_PRIMARY, COLOR_BG)) {
+            if (DrawButton(Rectangle{ cX + 540.0f, cY + 78.0f, 200.0f, 44.0f }, "XEM CHI TIẾT", COLOR_PRIMARY, COLOR_BG)) {
                 string masv = ToUpper(string(rptMasvBuf));
                 string mamh = ToUpper(string(rptMamhBuf));
 
@@ -585,13 +642,24 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 string mamh = ToUpper(string(rptMamhBuf));
                 ScoreNode* sc = FindScore(selectedStudent->data.scores, mamh);
                 if (sc != nullptr) {
-                    float dy = cY + 155.0f;
+                    float dy = cY + 138.0f;
                     DrawTextCustom(("Sinh viên: " + selectedStudent->data.HO + " " + selectedStudent->data.TEN + " - Điểm: " + to_string(sc->data.Diem)).c_str(), cX + 20.0f, dy, 22.0f, COLOR_SUCCESS);
-                    dy += 36.0f;
+                    dy += 35.0f;
 
+                    // Real-Time Search Bar for Exam Questions
+                    DrawTextInput(Rectangle{ cX + 20.0f, dy, cW - 40.0f, 40.0f }, searchReportHBuf, 64, searchReportHActive, "🔍 Gõ để lọc câu hỏi trong bài thi...");
+                    dy += 50.0f;
+
+                    string qReportH = string(searchReportHBuf);
                     AnswerDetailNode* ad = sc->data.details;
                     int qIdx = 1;
                     while (ad != nullptr && dy < (cY + cH - 30.0f)) {
+                        if (!qReportH.empty() && !MatchesSearch(ad->data.content, qReportH)) {
+                            ad = ad->next; // Filter exam questions in real-time
+                            qIdx++;
+                            continue;
+                        }
+
                         Color ansColor = (ad->data.studentSelection == ad->data.answer) ? COLOR_SUCCESS : COLOR_DANGER;
                         string lineText = "Câu " + to_string(qIdx++) + ": " + ad->data.content + " | SV chọn: " + string(1, ad->data.studentSelection) + " (Đáp án đúng: " + string(1, ad->data.answer) + ")";
                         DrawTextCustom(lineText.c_str(), cX + 20.0f, dy, 18.0f, ansColor);
@@ -603,7 +671,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
 
         // ==========================================
-        // 6. REPORT CLASS SCORES SCREEN (Requirement i)
+        // 6. REPORT CLASS SCORES SCREEN (Requirement i & Live Search)
         // ==========================================
         else if (currentState == APP_REPORT_CLASS_SCORES) {
             DrawSidebar(currentState, "IN BẢNG ĐIỂM THI TRẮC NGHIỆM CỦA 1 LỚP (MỤC I)", sw, sh);
@@ -615,15 +683,15 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             float cH = sh - 120.0f;
 
             DrawCard(Rectangle{ cX, cY, cW, cH });
-            DrawTextCustom("TRA CỨU BẢNG ĐIỂM THEO LỚP & MÔN HỌC", cX + 20.0f, cY + 20.0f, 24.0f, COLOR_PRIMARY);
+            DrawTextCustom("TRA CỨU BẢNG ĐIỂM THEO LỚP & MÔN HỌC", cX + 20.0f, cY + 18.0f, 24.0f, COLOR_PRIMARY);
 
-            DrawTextCustom("Nhập Mã Lớp:", cX + 20.0f, cY + 65.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 90.0f, 240.0f, 44.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
+            DrawTextCustom("Nhập Mã Lớp:", cX + 20.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 240.0f, 44.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
 
-            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 65.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 280.0f, cY + 90.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
+            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 280.0f, cY + 78.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
 
-            if (DrawButton(Rectangle{ cX + 540.0f, cY + 90.0f, 200.0f, 44.0f }, "IN BẢNG ĐIỂM", COLOR_PRIMARY, COLOR_BG)) {
+            if (DrawButton(Rectangle{ cX + 540.0f, cY + 78.0f, 200.0f, 44.0f }, "IN BẢNG ĐIỂM", COLOR_PRIMARY, COLOR_BG)) {
                 string malop = ToUpper(string(classMalopBuf));
                 Class* c = FindClass(listClasses, malop);
                 if (c != nullptr) {
@@ -636,7 +704,11 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
 
             if (selectedClass != nullptr) {
                 string mamh = ToUpper(string(rptMamhBuf));
-                float y = cY + 155.0f;
+
+                // Real-Time Search Bar for Class Score Table
+                DrawTextInput(Rectangle{ cX + 20.0f, cY + 135.0f, cW - 40.0f, 40.0f }, searchReportIBuf, 64, searchReportIActive, "🔍 Gõ để lọc theo mã SV hoặc họ tên...");
+
+                float y = cY + 190.0f;
                 DrawTextCustom("STT", cX + 20.0f, y, 19.0f, COLOR_MUTED);
                 DrawTextCustom("MASV", cX + 90.0f, y, 19.0f, COLOR_MUTED);
                 DrawTextCustom("HỌ TÊN", cX + 260.0f, y, 19.0f, COLOR_MUTED);
@@ -644,14 +716,21 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 DrawLine((int)(cX + 20.0f), (int)(y + 26.0f), (int)(cX + cW - 20.0f), (int)(y + 26.0f), COLOR_BORDER);
                 y += 36.0f;
 
+                string qReportI = string(searchReportIBuf);
                 int idx = 1;
                 StudentNode* st = selectedClass->students;
                 while (st != nullptr && y < (cY + cH - 30.0f)) {
+                    string fullName = st->data.HO + " " + st->data.TEN;
+                    if (!qReportI.empty() && !MatchesSearch(st->data.MASV, qReportI) && !MatchesSearch(fullName, qReportI)) {
+                        st = st->next; // Filter score table in real-time
+                        continue;
+                    }
+
                     ScoreNode* sc = FindScore(st->data.scores, mamh);
 
                     DrawTextCustom(to_string(idx++).c_str(), cX + 20.0f, y, 19.0f, COLOR_TEXT);
                     DrawTextCustom(st->data.MASV.c_str(), cX + 90.0f, y, 19.0f, COLOR_PRIMARY);
-                    DrawTextCustom((st->data.HO + " " + st->data.TEN).c_str(), cX + 260.0f, y, 19.0f, COLOR_TEXT);
+                    DrawTextCustom(fullName.c_str(), cX + 260.0f, y, 19.0f, COLOR_TEXT);
 
                     if (sc != nullptr) {
                         DrawTextCustom((to_string(sc->data.Diem) + " / 10.0").c_str(), cX + 600.0f, y, 19.0f, COLOR_SUCCESS);
