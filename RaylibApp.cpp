@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 
 #ifdef Rectangle
 #undef Rectangle
@@ -31,6 +32,130 @@ static bool MatchesSearch(const string& text, const string& query) {
     string textUpper = ToUpper(text);
     string queryUpper = ToUpper(query);
     return (textUpper.find(queryUpper) != string::npos);
+}
+
+// Export Report H (Detailed Exam Questions) to TXT
+static bool ExportReportH_TXT(StudentNode* st, const string& mamh, ScoreNode* sc, string& outFile) {
+    outFile = "BaoCao_ChiTietBaiThi_" + st->data.MASV + "_" + mamh + ".txt";
+    ofstream f(outFile);
+    if (!f.is_open()) return false;
+
+    f << "================================================================================\n";
+    f << "                  BAO CAO CHI TIET BAI THI TRAC NGHIEM (MUC H)\n";
+    f << "================================================================================\n";
+    f << "Sinh vien : " << st->data.HO << " " << st->data.TEN << " (Ma SV: " << st->data.MASV << ")\n";
+    f << "Mon thi   : " << mamh << "\n";
+    f << "Diem so   : " << sc->data.Diem << " / 10.0\n";
+    f << "--------------------------------------------------------------------------------\n\n";
+
+    AnswerDetailNode* ad = sc->data.details;
+    int idx = 1;
+    while (ad != nullptr) {
+        f << "Cau " << idx++ << ": " << ad->data.content << "\n";
+        f << "  A. " << ad->data.A << "\n";
+        f << "  B. " << ad->data.B << "\n";
+        f << "  C. " << ad->data.C << "\n";
+        f << "  D. " << ad->data.D << "\n";
+        bool isCorrect = (ad->data.studentSelection == ad->data.answer);
+        f << "  -> SV chon: " << ad->data.studentSelection << " | Dap an dung: " << ad->data.answer 
+          << " => KET QUA: " << (isCorrect ? "DUNG" : "SAI") << "\n";
+        f << "--------------------------------------------------------------------------------\n";
+        ad = ad->next;
+    }
+    f.close();
+    return true;
+}
+
+// Export Report H (Detailed Exam Questions) to CSV (Excel compatible)
+static bool ExportReportH_CSV(StudentNode* st, const string& mamh, ScoreNode* sc, string& outFile) {
+    outFile = "BaoCao_ChiTietBaiThi_" + st->data.MASV + "_" + mamh + ".csv";
+    ofstream f(outFile);
+    if (!f.is_open()) return false;
+
+    f << "\xEF\xBB\xBF"; // UTF-8 BOM
+    f << "BAO CAO CHI TIET BAI THI TRAC NGHIEM\n";
+    f << "Ma Sinh Vien," << st->data.MASV << "\n";
+    f << "Ho Ten," << st->data.HO << " " << st->data.TEN << "\n";
+    f << "Mon Thi," << mamh << "\n";
+    f << "Diem Thi," << sc->data.Diem << "\n\n";
+
+    f << "STT,Noi Dung Cau Hoi,Dap An A,Dap An B,Dap An C,Dap An D,SV Chon,Dap An Dung,Ket Qua\n";
+
+    AnswerDetailNode* ad = sc->data.details;
+    int idx = 1;
+    while (ad != nullptr) {
+        bool isCorrect = (ad->data.studentSelection == ad->data.answer);
+        f << idx++ << ",\"" << ad->data.content << "\",\"" << ad->data.A << "\",\"" << ad->data.B 
+          << "\",\"" << ad->data.C << "\",\"" << ad->data.D << "\"," << ad->data.studentSelection 
+          << "," << ad->data.answer << "," << (isCorrect ? "DUNG" : "SAI") << "\n";
+        ad = ad->next;
+    }
+    f.close();
+    return true;
+}
+
+// Export Report I (Class Scores Table) to TXT
+static bool ExportReportI_TXT(Class* c, const string& mamh, string& outFile) {
+    outFile = "BangDiem_Lop_" + c->MALOP + "_" + mamh + ".txt";
+    ofstream f(outFile);
+    if (!f.is_open()) return false;
+
+    f << "================================================================================\n";
+    f << "                 BANG DIEM THI TRAC NGHIEM CUA LOP (MUC I)\n";
+    f << "================================================================================\n";
+    f << "Ma Lop  : " << c->MALOP << " - Ten Lop: " << c->TENLOP << "\n";
+    f << "Mon Thi : " << mamh << "\n";
+    f << "--------------------------------------------------------------------------------\n";
+    f << "STT\t| MASV\t\t| HO VA TEN\t\t\t| DIEM THI\t| TRANG THAI\n";
+    f << "--------------------------------------------------------------------------------\n";
+
+    int idx = 1;
+    StudentNode* st = c->students;
+    while (st != nullptr) {
+        ScoreNode* sc = FindScore(st->data.scores, mamh);
+        string fullName = st->data.HO + " " + st->data.TEN;
+        f << idx++ << "\t| " << st->data.MASV << "\t| " << fullName;
+        if (sc != nullptr) {
+            f << "\t| " << sc->data.Diem << " / 10.0\t| Da thi\n";
+        } else {
+            f << "\t| --\t\t| Chua thi\n";
+        }
+        st = st->next;
+    }
+    f << "--------------------------------------------------------------------------------\n";
+    f.close();
+    return true;
+}
+
+// Export Report I (Class Scores Table) to CSV (Excel compatible)
+static bool ExportReportI_CSV(Class* c, const string& mamh, string& outFile) {
+    outFile = "BangDiem_Lop_" + c->MALOP + "_" + mamh + ".csv";
+    ofstream f(outFile);
+    if (!f.is_open()) return false;
+
+    f << "\xEF\xBB\xBF"; // UTF-8 BOM
+    f << "BANG DIEM THI TRAC NGHIEM CUA LOP\n";
+    f << "Ma Lop," << c->MALOP << "\n";
+    f << "Ten Lop," << c->TENLOP << "\n";
+    f << "Mon Thi," << mamh << "\n\n";
+
+    f << "STT,Ma Sinh Vien,Ho va Ten,Gioi Tinh,Diem Thi,Trang Thai\n";
+
+    int idx = 1;
+    StudentNode* st = c->students;
+    while (st != nullptr) {
+        ScoreNode* sc = FindScore(st->data.scores, mamh);
+        string fullName = st->data.HO + " " + st->data.TEN;
+        f << idx++ << "," << st->data.MASV << ",\"" << fullName << "\"," << st->data.PHAI << ",";
+        if (sc != nullptr) {
+            f << sc->data.Diem << ",Da thi\n";
+        } else {
+            f << ",Chua thi\n";
+        }
+        st = st->next;
+    }
+    f.close();
+    return true;
 }
 
 // Draw Sidebar Navigation Bar (Teacher Mode) with Extra Large Fonts
@@ -264,7 +389,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             DrawTextInput(Rectangle{ cX + 20.0f, cY + 95.0f, fInputW, 48.0f }, subMamhBuf, 15, subMamhActive, "VD: CTDL");
 
             DrawTextCustom("Tên Môn Học (TENMH):", cX + 20.0f, cY + 160.0f, 20.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 190.0f, fInputW, 48.0f }, subTenmhBuf, 50, subTenmhActive, "VD: Cấu trúc dữ liệu");
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 190.0f, fInputW, 50.0f }, subTenmhBuf, 50, subTenmhActive, "VD: Cấu trúc dữ liệu");
 
             if (DrawButton(Rectangle{ cX + 20.0f, cY + 265.0f, fInputW, 52.0f }, "THÊM MÔN HỌC MỚI", COLOR_SUCCESS, COLOR_BG)) {
                 string mamh = ToUpper(string(subMamhBuf));
@@ -599,7 +724,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
 
         // ==========================================
-        // 5. REPORT DETAIL EXAM SCREEN (Requirement h & Live Search)
+        // 5. REPORT DETAIL EXAM SCREEN (Requirement h, Export TXT/CSV & Live Search)
         // ==========================================
         else if (currentState == APP_REPORT_DETAIL_EXAM) {
             DrawSidebar(currentState, "IN CHI TIẾT CÂU HỎI ĐÃ THI CỦA 1 SINH VIÊN (MỤC H)", sw, sh);
@@ -614,12 +739,12 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             DrawTextCustom("TRA CỨU CHI TIẾT BÀI THI", cX + 20.0f, cY + 18.0f, 24.0f, COLOR_PRIMARY);
 
             DrawTextCustom("Nhập Mã SV:", cX + 20.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 240.0f, 44.0f }, rptMasvBuf, 15, rptMasvActive, "N18DCCN001");
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 200.0f, 44.0f }, rptMasvBuf, 15, rptMasvActive, "N18DCCN001");
 
-            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 280.0f, cY + 78.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
+            DrawTextCustom("Nhập Mã Môn:", cX + 240.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 240.0f, cY + 78.0f, 200.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
 
-            if (DrawButton(Rectangle{ cX + 540.0f, cY + 78.0f, 200.0f, 44.0f }, "XEM CHI TIẾT", COLOR_PRIMARY, COLOR_BG)) {
+            if (DrawButton(Rectangle{ cX + 460.0f, cY + 78.0f, 150.0f, 44.0f }, "XEM CHI TIẾT", COLOR_PRIMARY, COLOR_BG)) {
                 string masv = ToUpper(string(rptMasvBuf));
                 string mamh = ToUpper(string(rptMamhBuf));
 
@@ -642,6 +767,25 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
                 string mamh = ToUpper(string(rptMamhBuf));
                 ScoreNode* sc = FindScore(selectedStudent->data.scores, mamh);
                 if (sc != nullptr) {
+                    // Export File Buttons
+                    if (DrawButton(Rectangle{ cX + 620.0f, cY + 78.0f, 130.0f, 44.0f }, "XUẤT TXT", COLOR_SUCCESS, COLOR_BG)) {
+                        string outFile;
+                        if (ExportReportH_TXT(selectedStudent, mamh, sc, outFile)) {
+                            ShowToast("Đã xuất file " + outFile, COLOR_SUCCESS);
+                        } else {
+                            ShowToast("Lỗi: Không thể xuất file!", COLOR_DANGER);
+                        }
+                    }
+
+                    if (DrawButton(Rectangle{ cX + 760.0f, cY + 78.0f, 130.0f, 44.0f }, "XUẤT CSV", COLOR_SUCCESS, COLOR_BG)) {
+                        string outFile;
+                        if (ExportReportH_CSV(selectedStudent, mamh, sc, outFile)) {
+                            ShowToast("Đã xuất file " + outFile, COLOR_SUCCESS);
+                        } else {
+                            ShowToast("Lỗi: Không thể xuất file!", COLOR_DANGER);
+                        }
+                    }
+
                     float dy = cY + 138.0f;
                     DrawTextCustom(("Sinh viên: " + selectedStudent->data.HO + " " + selectedStudent->data.TEN + " - Điểm: " + to_string(sc->data.Diem)).c_str(), cX + 20.0f, dy, 22.0f, COLOR_SUCCESS);
                     dy += 35.0f;
@@ -671,7 +815,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
         }
 
         // ==========================================
-        // 6. REPORT CLASS SCORES SCREEN (Requirement i & Live Search)
+        // 6. REPORT CLASS SCORES SCREEN (Requirement i, Export TXT/CSV & Live Search)
         // ==========================================
         else if (currentState == APP_REPORT_CLASS_SCORES) {
             DrawSidebar(currentState, "IN BẢNG ĐIỂM THI TRẮC NGHIỆM CỦA 1 LỚP (MỤC I)", sw, sh);
@@ -686,12 +830,12 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
             DrawTextCustom("TRA CỨU BẢNG ĐIỂM THEO LỚP & MÔN HỌC", cX + 20.0f, cY + 18.0f, 24.0f, COLOR_PRIMARY);
 
             DrawTextCustom("Nhập Mã Lớp:", cX + 20.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 240.0f, 44.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
+            DrawTextInput(Rectangle{ cX + 20.0f, cY + 78.0f, 200.0f, 44.0f }, classMalopBuf, 15, classMalopActive, "D18CQCN01");
 
-            DrawTextCustom("Nhập Mã Môn:", cX + 280.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
-            DrawTextInput(Rectangle{ cX + 280.0f, cY + 78.0f, 240.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
+            DrawTextCustom("Nhập Mã Môn:", cX + 240.0f, cY + 55.0f, 18.0f, COLOR_TEXT);
+            DrawTextInput(Rectangle{ cX + 240.0f, cY + 78.0f, 200.0f, 44.0f }, rptMamhBuf, 15, rptMamhActive, "CTDL");
 
-            if (DrawButton(Rectangle{ cX + 540.0f, cY + 78.0f, 200.0f, 44.0f }, "IN BẢNG ĐIỂM", COLOR_PRIMARY, COLOR_BG)) {
+            if (DrawButton(Rectangle{ cX + 460.0f, cY + 78.0f, 150.0f, 44.0f }, "IN BẢNG ĐIỂM", COLOR_PRIMARY, COLOR_BG)) {
                 string malop = ToUpper(string(classMalopBuf));
                 Class* c = FindClass(listClasses, malop);
                 if (c != nullptr) {
@@ -704,6 +848,25 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
 
             if (selectedClass != nullptr) {
                 string mamh = ToUpper(string(rptMamhBuf));
+
+                // Export File Buttons
+                if (DrawButton(Rectangle{ cX + 620.0f, cY + 78.0f, 130.0f, 44.0f }, "XUẤT TXT", COLOR_SUCCESS, COLOR_BG)) {
+                    string outFile;
+                    if (ExportReportI_TXT(selectedClass, mamh, outFile)) {
+                        ShowToast("Đã xuất file " + outFile, COLOR_SUCCESS);
+                    } else {
+                        ShowToast("Lỗi: Không thể xuất file!", COLOR_DANGER);
+                    }
+                }
+
+                if (DrawButton(Rectangle{ cX + 760.0f, cY + 78.0f, 130.0f, 44.0f }, "XUẤT CSV", COLOR_SUCCESS, COLOR_BG)) {
+                    string outFile;
+                    if (ExportReportI_CSV(selectedClass, mamh, outFile)) {
+                        ShowToast("Đã xuất file " + outFile, COLOR_SUCCESS);
+                    } else {
+                        ShowToast("Lỗi: Không thể xuất file!", COLOR_DANGER);
+                    }
+                }
 
                 // Real-Time Search Bar for Class Score Table
                 DrawTextInput(Rectangle{ cX + 20.0f, cY + 135.0f, cW - 40.0f, 40.0f }, searchReportIBuf, 64, searchReportIActive, "🔍 Gõ để lọc theo mã SV hoặc họ tên...");
@@ -952,7 +1115,7 @@ void RunRaylibApp(SubjectTree& rootSubjects, ClassList& listClasses) {
 
         // Draw Overlay Toast
         if (toastTimer > 0.0f) {
-            float toastW = 500.0f;
+            float toastW = 550.0f;
             float toastX = (sw - toastW) / 2.0f;
             DrawCard(Rectangle{ toastX, sh - 80.0f, toastW, 55.0f }, toastColor, COLOR_TEXT);
             float textW = MeasureTextCustom(toastMsg.c_str(), 20.0f);
